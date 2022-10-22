@@ -83,16 +83,16 @@ const message = Message;
 
 export default defineComponent({
   name: "Login",
+
   components: {
     IconUser,
     IconLock
   },
-  beforeCreate() {
 
+  beforeCreate() {
     if (window.localStorage.getItem("cookie") !== null
-        || window.sessionStorage.getItem("cookie") !== null) {
+        || window.sessionStorage.getItem("cookie") !== null)
       this.$router.push('/')
-    }
   },
 
   setup() {
@@ -101,7 +101,7 @@ export default defineComponent({
       userError,
       passWordText,
       passWordError,
-      isAutologin,
+      isAutologin
     }
   },
   methods: {
