@@ -29,8 +29,8 @@ const router = createRouter({
 })
 
 const app = createApp(App);
-
-app.use(ArcoVue);
 app.use(router);
+app.use(ArcoVue);
+
 app.mount('#app');
 Message._context = app._context;

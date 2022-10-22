@@ -71,12 +71,15 @@ import {defineComponent, ref} from 'vue';
 import {IconUser, IconLock} from '@arco-design/web-vue/es/icon';
 
 import * as UserApi from "../uitls/UserApi";
+import {Message} from "@arco-design/web-vue";
 
 let userText = ref("")
 let passWordText = ref("")
 let isAutologin = ref(false)
 let userError = ref(false)
 let passWordError = ref(false)
+
+const message = Message;
 
 export default defineComponent({
   name: "Login",
@@ -85,7 +88,9 @@ export default defineComponent({
     IconLock
   },
   beforeCreate() {
-    if (window.localStorage.getItem("cookie") !== null || window.sessionStorage.getItem("cookie") !== null) {
+
+    if (window.localStorage.getItem("cookie") !== null
+        || window.sessionStorage.getItem("cookie") !== null) {
       this.$router.push('/')
     }
   },
@@ -111,38 +116,39 @@ export default defineComponent({
               autoLogin: isAutologin.value
             }
         ).then((e) => {
-          switch (e.data.errcode) {
+          const {errcode, token, errmsg} = e.data
+          switch (errcode) {
             case 0: {
               if (isAutologin.value) {
                 window.localStorage.setItem("username", passWordText.value)
-                window.localStorage.setItem("cookie", e.data.token)
+                window.localStorage.setItem("cookie", token)
               } else {
                 window.sessionStorage.setItem("username", passWordText.value)
-                window.sessionStorage.setItem("cookie", e.data.token)
+                window.sessionStorage.setItem("cookie", token)
               }
               this.$router.push('/')
               break;
             }
             case 6: {
-              this.$message.error(e.data.errmsg)
+              message.error(errmsg)
               userError.value = true
               passWordError.value = true
               break;
             }
             case 7: {
-              this.$message.error(e.data.errmsg)
+              message.error(errmsg)
               userError.value = true
               break;
             }
             default: {
-              this.$message.error(e.data.error)
+              message.error("错误：" + errmsg)
             }
           }
 
         })
       } else {
-        if (passWordError.value) this.$message.error("密码不可以为空")
-        if (userError.value) this.$message.error("账号不可以为空")
+        if (passWordError.value) message.error("密码不可以为空")
+        if (userError.value) message.error("账号不可以为空")
       }
 
     }
