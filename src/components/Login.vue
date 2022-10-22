@@ -24,7 +24,6 @@
           </a-layout-header>
         </a-layout>
       </a-layout-sider>
-      <a-layout style="padding: 24px 36px;">
         <a-layout-content>
           <a-card class="login-card" title="Login">
             <a-input
@@ -62,7 +61,6 @@
             </a-button>
           </a-card>
         </a-layout-content>
-      </a-layout>
     </a-layout>
   </a-layout>
 </template>
@@ -70,7 +68,7 @@
 import {defineComponent, ref} from 'vue';
 import {IconUser, IconLock} from '@arco-design/web-vue/es/icon';
 
-import * as UserApi from "../uitls/UserApi";
+import * as UserApi from "../utils/UserApi";
 import {Message} from "@arco-design/web-vue";
 
 let userText = ref("")
@@ -164,6 +162,9 @@ export default defineComponent({
 
 .layout :deep(.arco-layout-sider) {
   background: var(--color-bg-1);
+}
+.layout :deep(.arco-layout-content){
+  background: var(--color-neutral-2);
 }
 
 .layout :deep(.arco-layout-content), .login-card, .login-card :deep(.arco-card-body) {

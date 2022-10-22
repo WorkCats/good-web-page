@@ -5,9 +5,11 @@ import {createRouter, createWebHashHistory} from "vue-router";
 import { Message } from '@arco-design/web-vue';
 
 import './style.css'
-import App from './App.vue'
+import App from "./App.vue"
 import Home from "./components/Home.vue";
 import Login from "./components/Login.vue";
+import Admin from "./components/Admin.vue";
+import NotFound from "./components/NotFound.vue";
 const routes = [
     {
         path: "/",
@@ -19,6 +21,20 @@ const routes = [
         name: "Login",
         component: Login
     },
+    {
+        path: "/admin",
+        name: "Admin",
+        component: Admin
+    },
+    {
+        path: '/404',
+        name: 'NotFound',
+        component: () => NotFound
+    },
+    {
+        path: '/:pathMatch(.*)*',    // 此处需特别注意至于最底部
+        redirect: '/404'
+    }
 
 ]
 
