@@ -49,13 +49,13 @@ export const addGood = (cookie: string, good: Good) => {
 /**
  * 删除货物
  * @param cookie 对应的 token
- * @param good 需要删除的货物
+ * @param name 对应的 id
  * @returns 是否成功
  */
-export const delGood = (cookie: string, good: Good) => {
+export const delGood = (cookie: string, name: String) => {
 
     return axios.post(domain + "delGood", {
-        good_id: good.id
+        good_id: name
     }, {
         headers: {
             Authorization: cookie

@@ -37,7 +37,7 @@
                     <icon-edit/>
                   </template>
                 </a-button>
-                <a-button>
+                <a-button @click="deleteItemClick(item.id)">
                   <template #icon>
                     <icon-delete/>
                   </template>
@@ -108,6 +108,15 @@
           </a-form-item>
         </a-form>
       </a-modal>
+      <a-modal
+          v-model:visible="deleteVisible"
+          title="删除货物"
+          @cancel="handleDeleteCancel"
+          @before-ok="handleDeleteOk()">
+        <div>
+          是否删除当前货物
+        </div>
+      </a-modal>
     </a-layout-content>
   </a-layout>
   <a-button size="large"
@@ -140,14 +149,15 @@ export default defineComponent({
     IconUser,
     IconPlus
   },
-  methods: {
-
-  },
+  methods: {},
   setup() {
     const formRef = ref()
     const addVisible = ref(false);
     let usernameList = ref()
     let userLoading = ref(true)
+    let deleteVisible = ref(true)
+    let deleteId = ref('')
+
     async function getGoodList() {
       await GoodApi.getGoodList(token).then((e) => {
         const {errcode, good_list, errmsg} = e.data
@@ -169,6 +179,7 @@ export default defineComponent({
         }
       })
     }
+
     async function getNameList() {
       await UserApi.getUsernameList(token).then((e) => {
             const {errcode, username_list, errmsg} = e.data
@@ -188,6 +199,21 @@ export default defineComponent({
       )
     }
 
+    const deleteItemClick = (id) => {
+      deleteId.value = id
+      deleteVisible.value = true;
+    }
+    const handleDeleteOk = async () => {
+      await GoodApi.delGood(token, deleteId.value, deleteId.value).finally(
+          await getGoodList().finally(
+              deleteVisible.value = false
+          )
+      )
+    }
+    const handleDeleteCancel = () => {
+      deleteVisible.value = false;
+    }
+
     const handleAddClick = async () => {
       addVisible.value = true;
       await getNameList()
@@ -195,7 +221,6 @@ export default defineComponent({
 
     const handleAddOk = async (done) => {
       console.log(addForm)
-
       await done().then(
           async (union) => {
             if (union === undefined) {
@@ -205,15 +230,15 @@ export default defineComponent({
                 size: addForm.size,
                 user_name: addForm.user_name
               }).finally(
-                    await getGoodList().finally(
-                        addVisible.value = false
-                    )
+                  await getGoodList().finally(
+                      addVisible.value = false
+                  )
               )
             }
           }
       )
-
     }
+
     const handleAddCancel = () => {
       addVisible.value = false;
     }
@@ -237,7 +262,11 @@ export default defineComponent({
       handleAddCancel,
       usernameList,
       userLoading,
-      getGoodList
+      getGoodList,
+      deleteItemClick,
+      deleteVisible,
+      handleDeleteCancel,
+      handleDeleteOk
     }
   },
 
