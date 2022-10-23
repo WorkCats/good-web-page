@@ -32,7 +32,7 @@
                 {{ item.user_name }}
               </a-tag>
               <a-button-group size="mini">
-                <a-button>
+                <a-button @click="updateItemClick(item)">
                   <template #icon>
                     <icon-edit/>
                   </template>
@@ -113,9 +113,9 @@
           title="删除货物"
           @cancel="handleDeleteCancel"
           @before-ok="handleDeleteOk()">
-        <div>
+        <a-typography-text>
           是否删除当前货物
-        </div>
+        </a-typography-text>
       </a-modal>
     </a-layout-content>
   </a-layout>
@@ -125,6 +125,48 @@
             @click="handleAddClick">
     <icon-plus/>
   </a-button>
+
+  <a-modal
+      v-model:visible="updateVisible"
+      title="修改货物"
+      @cancel="handleUpdateCancel"
+      @before-ok="handleUpdateOk(() =>{
+            return $refs.addFormRef.validate()
+          })">
+    <a-form ref="addFormRef" :model="updateForm">
+
+      <a-form-item field="name" label="名字"
+                   :rules="[{required:true,message:'名字可以为空哦，喵'}]"
+                   :validate-trigger="['change','input']">
+        <a-input v-model="updateForm.name" size="large" placeholder="输入货物的名字" allow-clear>
+        </a-input>
+      </a-form-item>
+      <a-form-item field="size" label="数量"
+                   :rules="[{required:true,message:'需要输入数字'}]"
+                   :validate-trigger="['change','input']">
+        <a-input-number
+            v-model="updateForm.size"
+            placeholder="输入数量" :min="1" :default-value="10" :step="1"
+            class="input-demo"/>
+      </a-form-item>
+      <a-form-item
+          field="user_name"
+          label="用户所有者"
+          :rules="[{required:true,message:'需要选择持有者'}]"
+          :validate-trigger="['change','input']">
+        <a-select v-model="updateForm.user_name"
+                  size="large"
+                  placeholder="选择持有者"
+                  :options="usernameList"
+                  :loading="userLoading">
+          <template #prefix>
+            <icon-user/>
+          </template>
+        </a-select>
+      </a-form-item>
+    </a-form>
+  </a-modal>
+
 </template>
 
 <script>
@@ -155,8 +197,10 @@ export default defineComponent({
     const addVisible = ref(false);
     let usernameList = ref()
     let userLoading = ref(true)
-    let deleteVisible = ref(true)
-    let deleteId = ref('')
+    let deleteVisible = ref(false)
+    let deleteGoodId = ref('')
+    let updateVisible = ref(false)
+    let updateGood = ref()
 
     async function getGoodList() {
       await GoodApi.getGoodList(token).then((e) => {
@@ -200,11 +244,11 @@ export default defineComponent({
     }
 
     const deleteItemClick = (id) => {
-      deleteId.value = id
+      deleteGoodId.value = id
       deleteVisible.value = true;
     }
     const handleDeleteOk = async () => {
-      await GoodApi.delGood(token, deleteId.value, deleteId.value).finally(
+      await GoodApi.delGood(token, deleteGoodId.value).finally(
           await getGoodList().finally(
               deleteVisible.value = false
           )
@@ -220,7 +264,6 @@ export default defineComponent({
     };
 
     const handleAddOk = async (done) => {
-      console.log(addForm)
       await done().then(
           async (union) => {
             if (union === undefined) {
@@ -249,6 +292,46 @@ export default defineComponent({
       user_name: ''
     });
 
+    const handleUpdateOk = async (done) => {
+      await done().then(
+          async (union) => {
+            if (union === undefined) {
+              await GoodApi.updateGood(token, {
+                id: updateForm.id,
+                name: updateForm.name,
+                size: updateForm.size,
+                user_name: updateForm.user_name
+              }).finally(
+                  await getGoodList().finally(
+                      updateVisible.value = false
+                  )
+              )
+            }
+          }
+      )
+    }
+
+    const handleUpdateCancel = () => {
+      addVisible.value = false;
+    }
+
+    const updateForm = reactive({
+      id: "",
+      name: "",
+      size: 10,
+      user_name: ""
+    });
+
+    const updateItemClick = async (good) => {
+      updateGood.value = good
+      updateVisible.value = true;
+
+      updateForm.id = updateGood.value.id
+      updateForm.name = updateGood.value.name
+      updateForm.size = updateGood.value.size
+      updateForm.user_name = updateGood.value.user_name
+      await getNameList()
+    }
 
     return {
       isAdministrator,
@@ -265,8 +348,15 @@ export default defineComponent({
       getGoodList,
       deleteItemClick,
       deleteVisible,
+      deleteGoodId,
       handleDeleteCancel,
-      handleDeleteOk
+      handleDeleteOk,
+      updateForm,
+      updateGood,
+      updateVisible,
+      updateItemClick,
+      handleUpdateOk,
+      handleUpdateCancel
     }
   },
 
