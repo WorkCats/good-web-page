@@ -62,6 +62,7 @@
 
       </a-list>
       <a-modal
+          width="auto"
           v-model:visible="addVisible"
           title="添加货物"
           @cancel="handleAddCancel"
@@ -109,6 +110,7 @@
         </a-form>
       </a-modal>
       <a-modal
+          width="auto"
           v-model:visible="deleteVisible"
           title="删除货物"
           @cancel="handleDeleteCancel"
@@ -127,18 +129,23 @@
   </a-button>
 
   <a-modal
+      width="auto"
       v-model:visible="updateVisible"
       title="修改货物"
       @cancel="handleUpdateCancel"
       @before-ok="handleUpdateOk(() =>{
-            return $refs.addFormRef.validate()
+            return $refs.updateFormRef.validate()
           })">
-    <a-form ref="addFormRef" :model="updateForm">
+    <a-form ref="updateFormRef" :model="updateForm">
 
       <a-form-item field="name" label="名字"
                    :rules="[{required:true,message:'名字可以为空哦，喵'}]"
                    :validate-trigger="['change','input']">
-        <a-input v-model="updateForm.name" size="large" placeholder="输入货物的名字" allow-clear>
+        <a-input
+            v-model="updateForm.name"
+            size="large"
+            placeholder="输入货物的名字"
+            allow-clear>
         </a-input>
       </a-form-item>
       <a-form-item field="size" label="数量"
@@ -154,11 +161,12 @@
           label="用户所有者"
           :rules="[{required:true,message:'需要选择持有者'}]"
           :validate-trigger="['change','input']">
-        <a-select v-model="updateForm.user_name"
-                  size="large"
-                  placeholder="选择持有者"
-                  :options="usernameList"
-                  :loading="userLoading">
+        <a-select
+            v-model="updateForm.user_name"
+            size="large"
+            placeholder="选择持有者"
+            :options="usernameList"
+            :loading="userLoading">
           <template #prefix>
             <icon-user/>
           </template>
@@ -193,7 +201,6 @@ export default defineComponent({
   },
   methods: {},
   setup() {
-    const formRef = ref()
     const addVisible = ref(false);
     let usernameList = ref()
     let userLoading = ref(true)
@@ -312,7 +319,7 @@ export default defineComponent({
     }
 
     const handleUpdateCancel = () => {
-      addVisible.value = false;
+      updateVisible.value = false;
     }
 
     const updateForm = reactive({
@@ -339,7 +346,6 @@ export default defineComponent({
       addVisible,
       ColorApi,
       addForm,
-      formRef,
       handleAddClick,
       handleAddOk,
       handleAddCancel,
