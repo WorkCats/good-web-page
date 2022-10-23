@@ -1,1 +1,1 @@
-export const DOMAIN: string = "http://goods.clrcuiar.asia/"
+export const DOMAIN: string = document.location.protocol + "//" + window.location.host + '/'
