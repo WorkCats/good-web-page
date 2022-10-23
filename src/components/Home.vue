@@ -61,18 +61,65 @@
         </template>
 
       </a-list>
+      <a-modal
+          v-model:visible="addVisible"
+          title="添加货物"
+          @cancel="handleAddCancel"
+          @before-ok="handleAddOk(() =>{
+            return $refs.formRef.validate()
+          })">
+        <a-form ref="formRef" :model="addForm">
 
+          <a-form-item field="id" label="ID"
+                       :rules="[{required:true,message:'id 也有要求哦，主人'},
+                       {minLength:5, message:'最少为5位数'}]"
+                       :validate-trigger="['change','input']">
+            <a-input v-model="addForm.id" size="large" placeholder="输入对应的 ID" allow-clear>
+            </a-input>
+          </a-form-item>
+          <a-form-item field="name" label="名字"
+                       :rules="[{required:true,message:'名字可以为空哦，喵'}]"
+                       :validate-trigger="['change','input']">
+            <a-input v-model="addForm.name" size="large" placeholder="输入货物的名字" allow-clear>
+            </a-input>
+          </a-form-item>
+          <a-form-item field="size" label="数量"
+                       :rules="[{required:true,message:'需要输入数字'}]"
+                       :validate-trigger="['change','input']">
+            <a-input-number
+                v-model="addForm.size"
+                placeholder="输入数量" :min="1" :default-value="10" :step="1"
+                class="input-demo"/>
+          </a-form-item>
+          <a-form-item
+              field="user_name"
+              label="用户所有者"
+              :rules="[{required:true,message:'需要选择持有者'}]"
+              :validate-trigger="['change','input']">
+            <a-select v-model="addForm.user_name"
+                      size="large"
+                      placeholder="选择持有者"
+                      :options="usernameList"
+                      :loading="userLoading">
+              <template #prefix>
+                <icon-user/>
+              </template>
+            </a-select>
+          </a-form-item>
+        </a-form>
+      </a-modal>
     </a-layout-content>
   </a-layout>
   <a-button size="large"
             class="add-bt"
-            shape="circle">
+            shape="circle"
+            @click="handleAddClick">
     <icon-plus/>
   </a-button>
 </template>
 
 <script>
-import {defineComponent, ref} from "vue";
+import {defineComponent, reactive, ref} from "vue";
 import {IconUser, IconEdit, IconDelete, IconPlus} from '@arco-design/web-vue/es/icon';
 import {Message} from "@arco-design/web-vue";
 
@@ -85,7 +132,6 @@ let goodList = ref();
 let isAdministrator = ref(false);
 let token = ""
 
-
 export default defineComponent({
   name: "Home",
   components: {
@@ -94,27 +140,104 @@ export default defineComponent({
     IconUser,
     IconPlus
   },
-  setup() {
-    const visible = ref(false);
+  methods: {
 
-    const handleClick = () => {
-      visible.value = true;
-    };
-    const handleOk = () => {
-      visible.value = false;
-    };
-    const handleCancel = () => {
-      visible.value = false;
+  },
+  setup() {
+    const formRef = ref()
+    const addVisible = ref(false);
+    let usernameList = ref()
+    let userLoading = ref(true)
+    async function getGoodList() {
+      await GoodApi.getGoodList(token).then((e) => {
+        const {errcode, good_list, errmsg} = e.data
+        switch (errcode) {
+          case 0 : {
+            goodList.value = good_list
+            break;
+          }
+          case 2 : {
+            window.localStorage.removeItem("cookie")
+            message.error("登录失效，错误为：" + errmsg)
+            this.$router.push('/login')
+            break;
+          }
+          default: {
+            message.error("获取货物发生错误，错误为：" + errmsg)
+            break
+          }
+        }
+      })
     }
+    async function getNameList() {
+      await UserApi.getUsernameList(token).then((e) => {
+            const {errcode, username_list, errmsg} = e.data
+            switch (errcode) {
+              case 0 : {
+                usernameList.value = username_list
+                userLoading.value = false
+                break
+              }
+              default: {
+                message.error("登录失效，错误为：" + errmsg)
+                this.$router.push('/login')
+                break
+              }
+            }
+          }
+      )
+    }
+
+    const handleAddClick = async () => {
+      addVisible.value = true;
+      await getNameList()
+    };
+
+    const handleAddOk = async (done) => {
+      console.log(addForm)
+
+      await done().then(
+          async (union) => {
+            if (union === undefined) {
+              await GoodApi.addGood(token, {
+                id: addForm.id,
+                name: addForm.name,
+                size: addForm.size,
+                user_name: addForm.user_name
+              }).finally(
+                    await getGoodList().finally(
+                        addVisible.value = false
+                    )
+              )
+            }
+          }
+      )
+
+    }
+    const handleAddCancel = () => {
+      addVisible.value = false;
+    }
+    const addForm = reactive({
+      id: '',
+      name: '',
+      size: 10,
+      user_name: ''
+    });
+
 
     return {
       isAdministrator,
       goodList,
-      visible,
+      addVisible,
       ColorApi,
-      handleClick,
-      handleOk,
-      handleCancel
+      addForm,
+      formRef,
+      handleAddClick,
+      handleAddOk,
+      handleAddCancel,
+      usernameList,
+      userLoading,
+      getGoodList
     }
   },
 
@@ -165,27 +288,9 @@ export default defineComponent({
           }
         }
     )
-    await GoodApi.getGoodList(token).then((e) => {
-      const {errcode, good_list, errmsg} = e.data
-      switch (errcode) {
-        case 0 : {
-          goodList.value = good_list
-          break;
-        }
-        case 2 : {
-          window.localStorage.removeItem("cookie")
-          message.error("登录失效，错误为：" + errmsg)
-          this.$router.push('/login')
-          break;
-        }
-        default: {
-          message.error("获取货物发生错误，错误为：" + errmsg)
-          break
-        }
-      }
-    })
-
-  },
+    await this.getGoodList()
+  }
+  ,
 })
 
 </script>
