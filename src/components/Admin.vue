@@ -232,9 +232,9 @@ export default {
           async (union) => {
             if (union === undefined) {
               await UserApi.signup(token, {
-                username: updateForm.username,
-                password: updateForm.password,
-                is_administrator: updateForm.is_administrator
+                username: addForm.username,
+                password: addForm.password,
+                is_administrator: addForm.is_administrator
               }).finally(
                   await getUserList().finally(
                       () => {
