@@ -1,20 +1,25 @@
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
+
 // @ts-ignore
-import {createStyleImportPlugin} from 'vite-plugin-style-import';
+import AutoImport from 'unplugin-auto-import/vite'
+// @ts-ignore
+import Components from 'unplugin-vue-components/vite';
+// @ts-ignore
+import { ArcoResolver } from 'unplugin-vue-components/resolvers';
 
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
         vue(),
-        createStyleImportPlugin({
-            libs: [{
-                    libraryName: '@arco-design/web-vue',
-                    esModule: true,
-                    resolveStyle: (name) => {
-                        return `@arco-design/web-vue/es/${name}/style/css.js`
-                    },
-                }
+        AutoImport({
+            resolvers: [ArcoResolver()],
+        }),
+        Components({
+            resolvers: [
+                ArcoResolver({
+                    sideEffect: true
+                })
             ]
         })
     ],
